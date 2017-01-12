@@ -15,7 +15,12 @@ def ping(host, count=5, timeout=500):
     ping_cmd = ['ping', count_arg, str(count), '-W', str(timeout), str(host)]
 
     # # Ping
-    ping = subprocess.Popen(ping_cmd, stdout=subprocess.PIPE)
+    ping = subprocess.Popen(
+        ping_cmd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        close_fds=True)
     result = ping.stdout.readlines()[-1]
     target = 'min/avg/max/'
     if (target in result):
