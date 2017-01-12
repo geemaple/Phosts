@@ -1,3 +1,4 @@
+import multiprocessing
 import subprocess
 import platform
 import urllib2
@@ -10,24 +11,32 @@ def ping(host, count=10, timeout=500):
     count_arg = '-n' if platform.system().lower() == 'windows' else '-c'
     ping_cmd = ['ping', count_arg, str(count), '-W', str(timeout), str(host)]
 
-    # Ping
+    # # Ping
     ping = subprocess.Popen(ping_cmd, stdout=subprocess.PIPE)
     result = ping.stdout.readlines()[-1]
     target = 'round-trip min/avg/max/stddev'
     if (target in result):
         min_avg_max_stddev = re.findall(r'[0-9]+[.][0-9]+', result)
         avg = min_avg_max_stddev[1]
-        return (float(avg) <= timeout)
+        result = (host, float(avg) <= timeout)
     else:
-        return False
+        result = (host, False)
+    print 'ping test %s %s' % (host, 'success' if result[-1] else 'failed')
+    return result
+
+def start_process():
+    pass
 
 if __name__ == '__main__':
     check_dict = {}
+    inputs = set()
     source = 'https://raw.githubusercontent.com/racaljk/hosts/master/hosts'
-    target = '/private/etc/hosts' if platform.system().lower() == 'darwin' else '/etc/hosts'
+    mirror = 'https://coding.net/u/scaffrey/p/hosts/git/raw/master/hosts'
+    target = '/private/etc/hosts' if platform.system().lower() == 'darwin'\
+        else '/etc/hosts'
     start = 'Modified hosts start'
     process = False
-    replace = ''
+    hosts = ''
     offset = 0
     start_time = time.time()
 
@@ -41,12 +50,21 @@ if __name__ == '__main__':
         if line:
             offset -= len(line)
         else:
-            replace = '\n'
+            hosts = '\n'
 
         # download hosts
-        response = urllib2.urlopen(source)
+        print 'download hosts'
+        try:
+            response = urllib2.urlopen(source)
+        except e:
+            response = urllib2.urlopen(mirror)
 
         # check ping result
+        print 'ping testing....'
+        pool_size = max(multiprocessing.cpu_count() * 2, 20)
+        pool = multiprocessing.Pool(processes=pool_size,
+                                    initializer=start_process,
+                                    )
         for line in response:
             if start in line:
                 process = True
@@ -55,19 +73,21 @@ if __name__ == '__main__':
                 candidates = re.search(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b', line)
                 if candidates:
                     ip = candidates.group()
-                    if ip not in check_dict:
-                        check_dict[ip] = ping(ip)
+                    inputs.add(ip)
+                hosts += line
 
-                    if not check_dict[ip]:
-                        replace += '# %s' % line
-                        print replace
-                        continue
+        pool_outputs = pool.map_async(ping, inputs).get(1000)
+        pool.close() # no more tasks
+        pool.join()  # wrap up current tasks
 
-                replace += line
-                print line
+        for result in pool_outputs:
+            if not result[-1]:
+                ip = result[0]
+                hosts.replace(ip, '# %s' % ip)
 
+        print 'write to hosts file'
         # delete and write
         f.seek(offset)
         f.truncate()
-        f.write(replace)
-        print("--- %s seconds ---" % (time.time() - start_time))
+        f.write(hosts)
+        print("---all set after %s seconds ---" % (time.time() - start_time))
