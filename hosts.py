@@ -17,7 +17,7 @@ def ping(host, count=5, timeout=500):
     # # Ping
     ping = subprocess.Popen(ping_cmd, stdout=subprocess.PIPE)
     result = ping.stdout.readlines()[-1]
-    target = 'round-trip min/avg/max/stddev'
+    target = 'min/avg/max/'
     if (target in result):
         min_avg_max_stddev = re.findall(r'[0-9]+[.][0-9]+', result)
         avg = min_avg_max_stddev[1]
