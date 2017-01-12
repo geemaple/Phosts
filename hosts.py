@@ -1,3 +1,6 @@
+# !/usr/bin/env python
+# -*- coding:utf-8 -*-
+
 import multiprocessing
 import subprocess
 import platform
@@ -53,41 +56,44 @@ if __name__ == '__main__':
             hosts = '\n'
 
         # download hosts
-        print 'download hosts'
+        print 'downloading hosts...'
         try:
             response = urllib2.urlopen(source)
-        except e:
+        except:
             response = urllib2.urlopen(mirror)
 
         # check ping result
-        print 'ping testing....'
-        pool_size = max(multiprocessing.cpu_count() * 2, 20)
+        print 'create testing pool...'
+        pool_size = multiprocessing.cpu_count() * 2
         pool = multiprocessing.Pool(processes=pool_size,
-                                    initializer=start_process,
-                                    )
+                                    initializer=start_process)
+
+        regex = re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b')
+        print 'parse ip to testing...'
         for line in response:
             if start in line:
                 process = True
 
             if process:
-                candidates = re.search(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b', line)
+                candidates = regex.search(line)
                 if candidates:
                     ip = candidates.group()
                     inputs.add(ip)
                 hosts += line
 
+        print 'ping testing...'
         pool_outputs = pool.map_async(ping, inputs).get(1000)
-        pool.close() # no more tasks
-        pool.join()  # wrap up current tasks
+        pool.close()  # no more tasks
+        pool.join()   # wrap up current tasks
 
         for result in pool_outputs:
             if not result[-1]:
                 ip = result[0]
-                hosts.replace(ip, '# %s' % ip)
+                hosts = hosts.replace(ip, '# %s' % ip)
 
-        print 'write to hosts file'
+        print 'write to hosts file...'
         # delete and write
         f.seek(offset)
         f.truncate()
         f.write(hosts)
-        print("---all set after %s seconds ---" % (time.time() - start_time))
+        print('--- all set after %s seconds ---' % (time.time() - start_time))
