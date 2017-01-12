@@ -11,8 +11,16 @@ import re
 def ping(host, count=5, timeout=500):
     # Returns True if host responds to a ping request.
     # Ping parameters as function of OS
-    count_arg = '-n' if platform.system().lower() == 'windows' else '-c'
-    ping_cmd = ['ping', count_arg, str(count), '-W', str(timeout), str(host)]
+    ping_cmd = [
+        'ping',
+        '-n' if platform.system().lower() == 'windows' else '-c',
+        str(count),
+        '-W',
+        str(timeout),
+        '-t' if platform.system().lower() == 'darwin' else '-w',
+        str(count * 2),
+        str(host)
+    ]
 
     # # Ping
     ping = subprocess.Popen(
