@@ -8,7 +8,7 @@ import urllib2
 import time
 import re
 
-def ping(host, count=10, timeout=500):
+def ping(host, count=5, timeout=500):
     # Returns True if host responds to a ping request.
     # Ping parameters as function of OS
     count_arg = '-n' if platform.system().lower() == 'windows' else '-c'
