@@ -10,3 +10,6 @@ cd (Phosts)
 sudo python hosts.py
 
 ```
+
+## TODO:
+单线程版本运行时间太长：大约2030s
