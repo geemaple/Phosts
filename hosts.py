@@ -1,6 +1,7 @@
 import subprocess
 import platform
 import urllib2
+import time
 import re
 
 def ping(host, count=10, timeout=500):
@@ -28,6 +29,7 @@ if __name__ == '__main__':
     process = False
     replace = ''
     offset = 0
+    start_time = time.time()
 
     with open(target, 'r+') as f:
         # read and find
@@ -68,3 +70,4 @@ if __name__ == '__main__':
         f.seek(offset)
         f.truncate()
         f.write(replace)
+        print("--- %s seconds ---" % (time.time() - start_time))
