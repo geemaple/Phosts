@@ -29,14 +29,18 @@ def ping(host, count=5, timeout=500):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         close_fds=True)
-    result = ping.stdout.readlines()[-1]
-    target = 'min/avg/max/'
-    if (target in result):
-        min_avg_max_stddev = re.findall(r'[0-9]+[.][0-9]+', result)
-        avg = min_avg_max_stddev[1]
-        result = (host, float(avg) <= timeout)
-    else:
-        result = (host, False)
+
+    stdout = ping.stdout.readlines()
+    stderr = ping.stderr.readlines()
+    result = (host, False)
+    if len(stdout) > 0 and len(stderr) == 0:
+        target = 'min/avg/max/'
+        last_line = stdout[-1];
+        if (target in last_line):
+            min_avg_max_stddev = re.findall(r'[0-9]+[.][0-9]+', last_line)
+            avg = min_avg_max_stddev[1]
+            result = (host, float(avg) <= timeout)
+
     print 'ping test %s %s' % (host, 'success' if result[-1] else 'failed')
     return result
 
