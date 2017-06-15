@@ -63,7 +63,7 @@ if __name__ == '__main__':
     with open(target, 'r+') as f:
         # read and find
         line = f.readline()
-        while(line and start not in line):
+        while(line and start.lower() not in line.lower()):
             line = f.readline()
 
         offset = f.tell()
