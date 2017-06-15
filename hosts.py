@@ -88,7 +88,7 @@ if __name__ == '__main__':
         regex = re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b')
         print 'parse ip to testing...'
         for line in response:
-            if start in line:
+            if start.lower() in line.lower():
                 process = True
 
             if process:
