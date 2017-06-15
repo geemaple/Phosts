@@ -92,6 +92,10 @@ if __name__ == '__main__':
                 process = True
 
             if process:
+                if '127.0.0.1' in line or '::1' in line:
+                    hosts += '# %s' % line
+                    continue
+
                 candidates = regex.search(line)
                 if candidates:
                     ip = candidates.group()
