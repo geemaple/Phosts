@@ -126,9 +126,9 @@ def download_and_process(timeout, count):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Fetch and Add hosts', usage='sudo python hosts.py -t 200 -c 10')
-    parser.add_argument('-t', '--timeout', metavar='timeout', type=int, default=200, help='timeout for ping test')
-    parser.add_argument('-c', '--count', metavar='count', type=int, default=5, help='sample count')
+    parser = argparse.ArgumentParser(usage='sudo python hosts.py -t 300 -c 5')
+    parser.add_argument('-t', '--timeout', metavar='timeout', type=int, default=300, help='timeout for ping test')
+    parser.add_argument('-c', '--count', metavar='count', type=int, default=5, help='ping sample count')
 
     if os.getuid() == 0:
         args = parser.parse_args()
