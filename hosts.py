@@ -4,13 +4,17 @@
 import multiprocessing
 import subprocess
 import platform
+import argparse
 import urllib2
 import time
 import re
+import os
 
-def ping(host, count=5, timeout=500):
+
+def ping(args):
     # Returns True if host responds to a ping request.
     # Ping parameters as function of OS
+    host, timeout, count = args
     ping_cmd = [
         'ping',
         '-n' if platform.system().lower() == 'windows' else '-c',
@@ -47,7 +51,7 @@ def ping(host, count=5, timeout=500):
 def start_process():
     pass
 
-if __name__ == '__main__':
+def download_and_process(timeout, count):
     check_dict = {}
     inputs = set()
     source = 'https://raw.githubusercontent.com/racaljk/hosts/master/hosts'
@@ -103,7 +107,8 @@ if __name__ == '__main__':
                 hosts += line
 
         print 'ping testing...'
-        pool_outputs = pool.map_async(ping, inputs).get(1000)
+        args = ((ip, timeout, count) for ip in inputs)
+        pool_outputs = pool.map_async(ping, args).get(timeout * count)
         pool.close()  # no more tasks
         pool.join()   # wrap up current tasks
 
@@ -118,3 +123,15 @@ if __name__ == '__main__':
         f.truncate()
         f.write(hosts)
         print('--- all set after %s seconds ---' % (time.time() - start_time))
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='Fetch and Add hosts', usage='sudo python hosts.py -t 200 -c 10')
+    parser.add_argument('-t', '--timeout', metavar='timeout', type=int, default=200, help='timeout for ping test')
+    parser.add_argument('-c', '--count', metavar='count', type=int, default=5, help='sample count')
+
+    if os.getuid() == 0:
+        args = parser.parse_args()
+        download_and_process(args.timeout, args.count)
+    else:
+        parser.parse_args(['-h'])
