@@ -79,7 +79,7 @@ def download_and_process(timeout, count):
         # download hosts
         print 'downloading hosts...'
         try:
-            response = urllib2.urlopen(source)
+            response = urllib2.urlopen(source, timeout=5)
         except:
             response = urllib2.urlopen(mirror)
 
