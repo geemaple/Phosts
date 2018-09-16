@@ -85,7 +85,7 @@ def download_and_process(timeout, count):
 
         # check ping result
         print 'create testing pool...'
-        pool_size = multiprocessing.cpu_count() * 2
+        pool_size = multiprocessing.cpu_count() * 100
         pool = multiprocessing.Pool(processes=pool_size,
                                     initializer=start_process)
 
